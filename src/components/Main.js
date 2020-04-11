@@ -4,19 +4,22 @@ import socketIOClient from 'socket.io-client';
 import { akToast } from './Common/AkToast';
 import Octicon, { Heart } from '@primer/octicons-react';
 
+const initialState = {
+  name: '',
+  game_uuid: null,
+  owner: false,
+  player: null,
+  players: [],
+  round: null,
+  answers: undefined,
+  answer: undefined,
+  next_round: false,
+  answered: false,
+  rounds: 0
+};
+
 class Main extends PureComponent {
-  state = {
-    name: '',
-    game_uuid: null,
-    owner: false,
-    player: null,
-    players: [],
-    round: null,
-    answers: undefined,
-    answer: undefined,
-    next_round: false,
-    answered: false
-  };
+  state = Object.assign({}, initialState);
 
   socket;
 
@@ -28,7 +31,7 @@ class Main extends PureComponent {
         {players.length > 0 && (
           <div className="row my-2">
             <div className="col-12">
-              <span>
+              <span className="ml-2">
                 <strong>Players:</strong>
               </span>
               {players
@@ -45,6 +48,11 @@ class Main extends PureComponent {
                     </span>
                   );
                 })}
+              {round && (
+                <div className="float-right mr-3 p-2">
+                  <strong>Round {round.n}</strong>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -249,17 +257,7 @@ class Main extends PureComponent {
         </div>,
         'Final scores',
         () => {
-          this.setState({
-            game_uuid: null,
-            owner: false,
-            player: null,
-            players: [],
-            round: null,
-            answers: undefined,
-            answer: undefined,
-            next_round: false,
-            answered: false
-          });
+          this.setState(Object.assign({}, initialState));
         }
       );
     });
