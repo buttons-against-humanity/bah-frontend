@@ -61,8 +61,11 @@ class Main extends PureComponent {
           )}
           {owner && next_round && (
             <div className="alert p-3 alert-dark">
-              <button className="btn btn-dark" onClick={this.onNextRound}>
+              <button className="btn btn-dark m-2" onClick={this.onNextRound}>
                 NEXT ROUND
+              </button>
+              <button className="btn btn-dark m-2" onClick={this.onEndGame}>
+                END GAME
               </button>
             </div>
           )}
@@ -71,13 +74,31 @@ class Main extends PureComponent {
             <div className="alert p-3 alert-dark">Waiting game to start...</div>
           )}
           {!game_uuid && (
-            <div className="text-center">
-              <button className="btn btn-lg mr-2 btn-dark" onClick={this.onCreateGame}>
-                CREATE NEW GAME
-              </button>
-              <button className="btn btn-lg ml-2 btn-dark" onClick={this.onJoinGame}>
-                JOIN A GAME
-              </button>
+            <div className="container text-center">
+              <div className=" mt-4 text-left">
+                Cards Against Humanity is a party game for horrible people. <br />
+                Unlike most of the party games you've played before, Cards Against Humanity is as despicable and awkward
+                as you and your friends.
+                <br />
+                <br />
+                The game is simple. Each round, one player asks a question from a black card, and everyone else answers
+                with their funniest white card.
+                <br />
+                <br />
+                <br />
+                This is a online fork of{' '}
+                <a href="https://www.cardsagainsthumanity.com/" target="_blank" rel="noopener noreferrer">
+                  The Original Cards Against Humanity Game
+                </a>
+              </div>
+              <div className="mt-4">
+                <button className="btn btn-lg mr-2 mt-2 btn-dark" onClick={this.onCreateGame}>
+                  CREATE NEW GAME
+                </button>
+                <button className="btn btn-lg ml-2 mt-2 btn-dark" onClick={this.onJoinGame}>
+                  JOIN A GAME
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -99,28 +120,35 @@ class Main extends PureComponent {
               {is_card_czar && <h2>Which one do you prefer?</h2>}
               <div className="list-group">
                 {answers.map((answer, i) => {
-                  return (
-                    <div key={i} className="list-group-item p-5 d-flex justify-content-between align-items-center">
-                      <span dangerouslySetInnerHTML={{ __html: answer.text }} />
-                      {is_card_czar && (
+                  if (is_card_czar) {
+                    return (
+                      <div key={i} className="list-group-item p-5 d-flex justify-content-between align-items-center">
+                        <span dangerouslySetInnerHTML={{ __html: answer.text }} />
+
                         <button className="btn btn-dark" onClick={e => this.onChooseWinner(answer)}>
                           <Octicon icon={Heart} size="small" />
                         </button>
-                      )}
-                    </div>
-                  );
+                      </div>
+                    );
+                  } else {
+                    return (
+                      <div key={i} className="list-group-item p-5">
+                        <span dangerouslySetInnerHTML={{ __html: answer.text }} />
+                      </div>
+                    );
+                  }
                 })}
               </div>
             </div>
           </div>
         )}
-        {player && round && !is_card_czar && !answers && (
+        {player && round && !is_card_czar && !answered && (
           <div className="container">
             <h4 className="text-center">COMPLETE THE SENTENCES...</h4>
             <div className="row">
               {player.answers.map((answer, i) => {
                 return (
-                  <div key={i} className="col-lg-3 col-2">
+                  <div key={i} className="col-lg-3 col-6">
                     <button className="btn btn-link" onClick={e => this.onAnswer(e, answer)}>
                       <div className="card p-3 mb-3">
                         <div className="card-body">
@@ -134,7 +162,7 @@ class Main extends PureComponent {
             </div>
           </div>
         )}
-        {player && round && !is_card_czar && answers && answer && (
+        {player && round && !is_card_czar && !answers && answered && (
           <div className="container ">
             <h4>
               Wait for <strong>{round.card_czar.name}</strong> to choose the winner...
@@ -173,7 +201,7 @@ class Main extends PureComponent {
       akToast('Game Started!', 2000);
     });
     this.socket.on('round:start', round => {
-      this.setState({ round, answers: undefined, answer: undefined, next_round: false });
+      this.setState({ round, answers: undefined, answer: undefined, next_round: false, answered: false });
     });
     this.socket.on('round:answers', answers => {
       this.setState({ answers });
@@ -200,6 +228,41 @@ class Main extends PureComponent {
         }
       );
     });
+    this.socket.on('game:ended', () => {
+      akAlert(
+        <div>
+          <ul className="list-group">
+            {this.state.players
+              .sort((a, b) => {
+                if (a.points > b.points) return -1;
+                if (a.points < b.points) return 1;
+                return 0;
+              })
+              .map((player, i) => {
+                return (
+                  <li key={i} className="list-group-item">
+                    {player.name} - Points: {player.points}
+                  </li>
+                );
+              })}
+          </ul>
+        </div>,
+        'Final scores',
+        () => {
+          this.setState({
+            game_uuid: null,
+            owner: false,
+            player: null,
+            players: [],
+            round: null,
+            answers: undefined,
+            answer: undefined,
+            next_round: false,
+            answered: false
+          });
+        }
+      );
+    });
   }
 
   componentWillUnmount() {
@@ -218,7 +281,9 @@ class Main extends PureComponent {
     if (!this.state.round || !this.state.answer) {
       return;
     }
-    this.socket.emit('round:answer', this.state.answer);
+    this.setState({ answered: true }, () => {
+      this.socket.emit('round:answer', this.state.answer);
+    });
   };
 
   onCreateGame = () => {
@@ -227,6 +292,10 @@ class Main extends PureComponent {
         this.socket.emit('game:create', this.state.name);
       });
     });
+  };
+
+  onEndGame = () => {
+    this.socket.emit('game:end');
   };
 
   onJoinGame = () => {
@@ -241,6 +310,7 @@ class Main extends PureComponent {
     akPrompt(
       "What's your nickname ?",
       name => {
+        name = name.trim();
         if (!name) {
           return;
         }
@@ -256,6 +326,7 @@ class Main extends PureComponent {
     akPrompt(
       'Please insert Game UUID',
       game_uuid => {
+        game_uuid = game_uuid.trim();
         if (!game_uuid) {
           return;
         }
