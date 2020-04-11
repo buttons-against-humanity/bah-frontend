@@ -1,0 +1,103 @@
+html {
+  height: 100vh;
+}
+body {
+  padding: 0;
+  margin: 0;
+  height: 100vh;
+}
+#root {
+  height: 100vh;
+  .root-wrapper {
+    height: 100vh;
+  }
+}
+.main-wrapper,
+.main-outer {
+  height: calc(100vh - 56px);
+  max-height: calc(100vh - 56px);
+}
+.cn-col-wrapper {
+  height: 100%;
+}
+.cn-col {
+  padding: 8px;
+  position: relative;
+  min-width: 240px;
+  .btn-add-item {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    right: 8px;
+  }
+}
+
+.cn-col-teams {
+  background-color: bisque;
+}
+
+.cn-col-project {
+  background-color: beige;
+}
+
+.cn-col-slots {
+  background-color: antiquewhite;
+  width: 400px;
+  overflow-y: auto;
+  .slots-lists-wrapper {
+    margin-bottom: 50px;
+  }
+
+  .time-btns {
+    .btn {
+      margin-right: 4px;
+    }
+  }
+}
+
+.current-job-wrapper {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  background-color: lightsalmon;
+  -webkit-box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.75);
+  -moz-box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.75);
+  box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.75);
+  padding: 12px;
+}
+
+#modal-root {
+  position: relative;
+  z-index: 999;
+}
+
+.fab-wrapper {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 50px;
+  height: 50px;
+}
+
+.fab-wrapper .fab-button {
+  background-color: #337ab7;
+  border: 0;
+  border-radius: 50%;
+  box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
+  color: #fff;
+  font-size: 20px;
+  height: 50px;
+  line-height: 50px;
+  text-align: center;
+  width: 50px;
+  z-index: 998;
+  transition: background-color 0.2s;
+}
+.fab-button:hover {
+  background-color: #4f93ce;
+  transform: rotate(360deg);
+  transition: transform 0.2s;
+}
+.fab-button:focus {
+  outline: none;
+}

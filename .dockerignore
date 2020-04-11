@@ -1,0 +1,8 @@
+node_modules
+.editorconfig
+.eslintrc.json
+.git
+.gitignore
+.gitlab-ci.yml
+.idea
+.npmrc
