@@ -13,6 +13,7 @@
     "node-sass": "^4.13.1",
     "qs": "^6.9.1",
     "react": "^16.13.0",
+    "react-countdown": "^2.2.1",
     "react-dom": "^16.13.0",
     "react-redux": "^7.2.0",
     "react-router-dom": "^5.1.2",

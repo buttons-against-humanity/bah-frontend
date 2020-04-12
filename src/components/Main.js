@@ -2,6 +2,7 @@ import React, { PureComponent } from 'react';
 import { akAlert, akPrompt } from './Common/AKAlertConfirm';
 import socketIOClient from 'socket.io-client';
 import { akToast } from './Common/AkToast';
+import Countdown from 'react-countdown';
 import Octicon, { Heart } from '@primer/octicons-react';
 
 const initialState = {
@@ -15,7 +16,8 @@ const initialState = {
   answer: undefined,
   next_round: false,
   answered: false,
-  rounds: 0
+  rounds: 0,
+  round_end_at: false
 };
 
 class Main extends PureComponent {
@@ -24,8 +26,26 @@ class Main extends PureComponent {
   socket;
 
   render() {
-    const { game_uuid, name, owner, player, players, round, answers, answer, next_round, answered } = this.state;
+    const {
+      game_uuid,
+      name,
+      owner,
+      player,
+      players,
+      round,
+      answers,
+      answer,
+      next_round,
+      answered,
+      round_end_at
+    } = this.state;
     const is_card_czar = round && round.card_czar.uuid === player.uuid;
+
+    let has_valid_answers = false;
+    if (answers) {
+      has_valid_answers = answers.some(answer => !!answer.text);
+    }
+
     return (
       <div className="main-wrapper">
         {players.length > 0 && (
@@ -112,6 +132,17 @@ class Main extends PureComponent {
         </div>
         {round && !answers && (
           <div className="container text-center mb-4">
+            {is_card_czar && !answered && <h5>Wait for the other players' answers</h5>}
+            {!is_card_czar && !answered && (
+              <Countdown
+                renderer={renderProps => {
+                  const { minutes, seconds } = renderProps.formatted;
+                  return <h3>{minutes !== '00' ? `${minutes}:${seconds}` : seconds}</h3>;
+                }}
+                date={round_end_at}
+                onComplete={this.onAnswerTimeout}
+              />
+            )}
             <div className="alert alert-dark">
               <p className="display-4" dangerouslySetInnerHTML={{ __html: this._getFullTextAnswer() }} />
               {answer && !answered && (
@@ -131,22 +162,32 @@ class Main extends PureComponent {
                   if (is_card_czar) {
                     return (
                       <div key={i} className="list-group-item p-5 d-flex justify-content-between align-items-center">
-                        <span dangerouslySetInnerHTML={{ __html: answer.text }} />
+                        <span dangerouslySetInnerHTML={{ __html: answer.text ? answer.text : '** Unanswered **' }} />
 
-                        <button className="btn btn-dark" onClick={e => this.onChooseWinner(answer)}>
-                          <Octicon icon={Heart} size="small" />
-                        </button>
+                        {answer.text && (
+                          <button className="btn btn-dark" onClick={e => this.onChooseWinner(answer)}>
+                            <Octicon icon={Heart} size="small" />
+                          </button>
+                        )}
                       </div>
                     );
                   } else {
                     return (
                       <div key={i} className="list-group-item p-5">
-                        <span dangerouslySetInnerHTML={{ __html: answer.text }} />
+                        <span dangerouslySetInnerHTML={{ __html: answer.text ? answer.text : '** Unanswered **' }} />
                       </div>
                     );
                   }
                 })}
               </div>
+              {is_card_czar && !has_valid_answers && (
+                <div className="alert alert-danger my-3">
+                  No valid answers!
+                  <button className="btn btn-outline-danger ml-3" onClick={() => this.onChooseWinner(false)}>
+                    CONTINUE
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -190,10 +231,6 @@ class Main extends PureComponent {
     this.socket.on('game:joined', player => {
       this.setState({ player });
     });
-    this.socket.on('player:update', player => {
-      console.log('player', player);
-      this.setState({ player });
-    });
     this.socket.on('game:join_error', message => {
       console.log('Got', message);
       this.setState({ game_uuid: null });
@@ -224,39 +261,6 @@ class Main extends PureComponent {
       _round.card_czar = czar;
       this.setState({ round: _round });
     });
-    this.socket.on('round:start', round => {
-      this.setState({ round, answers: undefined, answer: undefined, next_round: false, answered: false });
-    });
-    this.socket.on('round:answers', answers => {
-      this.setState({ answers });
-    });
-    this.socket.on('player:joined', player => {
-      if (player !== this.state.name) {
-        akToast(`${player} joined the game!`);
-      }
-    });
-    this.socket.on('player:left', player => {
-      if (player !== this.state.name) {
-        akToast(`${player} left the game!`);
-      }
-    });
-    this.socket.on('round:winner', winner => {
-      this.setState(
-        {
-          next_round: true
-        },
-        () => {
-          akAlert(
-            <p>
-              <strong>{winner.player}</strong> with:
-              <br />
-              <span dangerouslySetInnerHTML={{ __html: winner.text }} />
-            </p>,
-            'ROUND WINNER'
-          );
-        }
-      );
-    });
     this.socket.on('game:ended', () => {
       akAlert(
         <div>
@@ -279,6 +283,54 @@ class Main extends PureComponent {
         'Final scores',
         () => {
           this.setState(Object.assign({}, initialState));
+        }
+      );
+    });
+    this.socket.on('player:update', player => {
+      console.log('player', player);
+      this.setState({ player });
+    });
+    this.socket.on('player:joined', player => {
+      if (player !== this.state.name) {
+        akToast(`${player} joined the game!`);
+      }
+    });
+    this.socket.on('player:left', player => {
+      if (player !== this.state.name) {
+        akToast(`${player} left the game!`);
+      }
+    });
+    this.socket.on('round:start', round => {
+      this.setState({
+        round,
+        answers: undefined,
+        answer: undefined,
+        next_round: false,
+        answered: false,
+        round_end_at: Date.now() + 60000
+      });
+    });
+    this.socket.on('round:answers', answers => {
+      this.setState({ answers });
+    });
+    this.socket.on('round:winner', winner => {
+      this.setState(
+        {
+          next_round: true
+        },
+        () => {
+          akAlert(
+            <p>
+              {winner.player && (
+                <span>
+                  <strong>{winner.player}</strong> with:
+                </span>
+              )}
+              <br />
+              <span dangerouslySetInnerHTML={{ __html: winner.text }} />
+            </p>,
+            'ROUND WINNER'
+          );
         }
       );
     });
@@ -400,6 +452,16 @@ class Main extends PureComponent {
 
   onNextRound = () => {
     this.socket.emit('round:next');
+  };
+
+  onAnswerTimeout = () => {
+    akToast('Timeout expired!', 2000, true);
+    if (!this.state.round) {
+      return;
+    }
+    this.setState({ answered: true }, () => {
+      this.socket.emit('round:answer', false);
+    });
   };
 }
 
