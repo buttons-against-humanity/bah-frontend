@@ -183,9 +183,6 @@ class Main extends PureComponent {
 
   componentDidMount() {
     this.socket = socketIOClient();
-    this.socket.on('news', data => {
-      console.log('Got', data);
-    });
     this.socket.on('game:created', game_uuid => {
       console.log('Got', game_uuid);
       this.setState({ game_uuid });
@@ -208,6 +205,25 @@ class Main extends PureComponent {
     this.socket.on('game:started', () => {
       akToast('Game Started!', 2000);
     });
+    this.socket.on('game:owner_change', owner => {
+      if (owner.uuid === this.state.player.uuid) {
+        this.setState({ owner: true });
+        akToast(`You are the new game owner!`, 4000);
+      } else {
+        akToast(`${owner.name} is the new game owner`, 2000);
+      }
+    });
+    this.socket.on('game:czar_change', czar => {
+      if (czar.uuid === this.state.player.uuid) {
+        akToast(`You are the new card czar!`, 4000);
+      } else {
+        akToast(`${czar.name} is the new card czar`, 2000);
+      }
+      const { round } = this.state;
+      const _round = Object.assign({}, round);
+      _round.card_czar = czar;
+      this.setState({ round: _round });
+    });
     this.socket.on('round:start', round => {
       this.setState({ round, answers: undefined, answer: undefined, next_round: false, answered: false });
     });
@@ -217,6 +233,11 @@ class Main extends PureComponent {
     this.socket.on('player:joined', player => {
       if (player !== this.state.name) {
         akToast(`${player} joined the game!`);
+      }
+    });
+    this.socket.on('player:left', player => {
+      if (player !== this.state.name) {
+        akToast(`${player} left the game!`);
       }
     });
     this.socket.on('round:winner', winner => {
