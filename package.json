@@ -1,7 +1,7 @@
 {
   "name": "pcah-frontend",
   "description": "Personal Cards Against Humanity",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "proxy": "http://localhost:8080",
   "author": "Michele <macno@authkeys.io> (macno)",
