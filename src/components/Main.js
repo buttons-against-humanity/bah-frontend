@@ -2,8 +2,13 @@ import React, { PureComponent } from 'react';
 import { akAlert, akPrompt } from './Common/AKAlertConfirm';
 import socketIOClient from 'socket.io-client';
 import { akToast } from './Common/AkToast';
-import Countdown from 'react-countdown';
-import Octicon, { Heart } from '@primer/octicons-react';
+import PlayersBar from './Game/PlayersBar';
+import Homepage from './Game/Homepage';
+import AnswersList from './Game/AnswersList';
+import RoundHeader from './Game/RoundHeader';
+import CardsList from './Game/CardsList';
+import OwnerInitialPage from './Game/OwnerInitialPage';
+import OwnerNextRound from './Game/OwnerNextRound';
 
 const initialState = {
   name: '',
@@ -28,7 +33,6 @@ class Main extends PureComponent {
   render() {
     const {
       game_uuid,
-      name,
       owner,
       player,
       players,
@@ -48,176 +52,39 @@ class Main extends PureComponent {
 
     return (
       <div className="main-wrapper">
-        {players.length > 0 && (
-          <div className="row my-2">
-            <div className="col-12">
-              <span className="ml-2">
-                <strong>Players:</strong>
-              </span>
-              {players
-                .sort((a, b) => {
-                  if (a.points > b.points) return -1;
-                  if (a.points < b.points) return 1;
-                  return 0;
-                })
-                .map((player, i) => {
-                  const card_czar = round && round.card_czar.name === player.name;
-                  return (
-                    <span key={i} className={'ml-3 p-2 ' + (card_czar ? ' bg-dark text-white' : '')}>
-                      {player.name} - Points: {player.points}
-                    </span>
-                  );
-                })}
-              {round && (
-                <div className="float-right mr-3 p-2">
-                  <strong>Round {round.n}</strong>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
+        <PlayersBar players={players} round={round} />
         <div className="p-5 text-center">
-          {game_uuid && name && owner && !round && !next_round && (
-            <div className="alert p-3 alert-dark">
-              Game UUID: <strong>{game_uuid}</strong>
-              <div className="m-3">
-                <button className="btn btn-danger" disabled={players.length === 0} onClick={this.onGameStart}>
-                  START
-                </button>
-              </div>
-            </div>
+          {!game_uuid && <Homepage onCreateGame={this.onCreateGame} onJoinGame={this.onJoinGame} />}
+          {game_uuid && owner && !round && !next_round && (
+            <OwnerInitialPage players={players} game_uuid={game_uuid} onGameStart={this.onGameStart} />
           )}
-          {owner && next_round && (
-            <div className="alert p-3 alert-dark">
-              <button className="btn btn-dark m-2" onClick={this.onNextRound}>
-                NEXT ROUND
-              </button>
-              <button className="btn btn-dark m-2" onClick={this.onEndGame}>
-                END GAME
-              </button>
-            </div>
-          )}
-          {!owner && next_round && <div className="alert p-3 alert-dark">Waiting for next round...</div>}
-          {game_uuid && name && !owner && !round && !next_round && (
+          {game_uuid && !owner && !round && !next_round && (
             <div className="alert p-3 alert-dark">Waiting game to start...</div>
           )}
-          {!game_uuid && (
-            <div className="container text-center">
-              <div className=" mt-4 text-left">
-                Cards Against Humanity is a party game for horrible people. <br />
-                Unlike most of the party games you've played before, Cards Against Humanity is as despicable and awkward
-                as you and your friends.
-                <br />
-                <br />
-                The game is simple. Each round, one player asks a question from a black card, and everyone else answers
-                with their funniest white card.
-                <br />
-                <br />
-                <br />
-                This is a online fork of{' '}
-                <a href="https://www.cardsagainsthumanity.com/" target="_blank" rel="noopener noreferrer">
-                  The Original Cards Against Humanity Game
-                </a>
-              </div>
-              <div className="mt-4">
-                <button className="btn btn-lg mr-2 mt-2 btn-dark" onClick={this.onCreateGame}>
-                  CREATE NEW GAME
-                </button>
-                <button className="btn btn-lg ml-2 mt-2 btn-dark" onClick={this.onJoinGame}>
-                  JOIN A GAME
-                </button>
-              </div>
-            </div>
-          )}
+          {owner && next_round && <OwnerNextRound onEndGame={this.onEndGame} onNextRound={this.onNextRound} />}
+          {!owner && next_round && <div className="alert p-3 alert-dark">Waiting for next round...</div>}
         </div>
         {round && !answers && (
-          <div className="container text-center mb-4">
-            {is_card_czar && !answered && <h5>Wait for the other players' answers</h5>}
-            {!is_card_czar && !answered && (
-              <Countdown
-                renderer={renderProps => {
-                  const { minutes, seconds } = renderProps.formatted;
-                  return <h3>{minutes !== '00' ? `${minutes}:${seconds}` : seconds}</h3>;
-                }}
-                date={round_end_at}
-                onComplete={this.onAnswerTimeout}
-              />
-            )}
-            <div className="alert alert-dark">
-              <p className="display-4" dangerouslySetInnerHTML={{ __html: this._getFullTextAnswer() }} />
-              {answer && !answered && (
-                <button className="btn btn-dark" onClick={this.onConfirmAnswer}>
-                  CONFIRM
-                </button>
-              )}
-            </div>
-          </div>
+          <RoundHeader
+            is_card_czar={is_card_czar}
+            answered={answered}
+            onAnswerTimeout={this.onAnswerTimeout}
+            onConfirmAnswer={this.onConfirmAnswer}
+            round={round}
+            answer={answer}
+            round_end_at={round_end_at}
+          />
         )}
         {round && answers && (
-          <div className="container text-center mb-4">
-            <div className="alert alert-dark">
-              {is_card_czar && <h2>Which one do you prefer?</h2>}
-              <div className="list-group">
-                {answers.map((answer, i) => {
-                  if (is_card_czar) {
-                    return (
-                      <div key={i} className="list-group-item p-5 d-flex justify-content-between align-items-center">
-                        <span dangerouslySetInnerHTML={{ __html: answer.text ? answer.text : '** Unanswered **' }} />
-
-                        {answer.text && (
-                          <button className="btn btn-dark" onClick={e => this.onChooseWinner(answer)}>
-                            <Octicon icon={Heart} size="small" />
-                          </button>
-                        )}
-                      </div>
-                    );
-                  } else {
-                    return (
-                      <div key={i} className="list-group-item p-5">
-                        <span dangerouslySetInnerHTML={{ __html: answer.text ? answer.text : '** Unanswered **' }} />
-                      </div>
-                    );
-                  }
-                })}
-              </div>
-              {is_card_czar && !has_valid_answers && (
-                <div className="alert alert-danger my-3">
-                  No valid answers!
-                  <button className="btn btn-outline-danger ml-3" onClick={() => this.onChooseWinner(false)}>
-                    CONTINUE
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
+          <AnswersList
+            card_czar_name={round.card_czar.name}
+            is_card_czar={is_card_czar}
+            has_valid_answers={has_valid_answers}
+            answers={answers}
+            onChooseWinner={this.onChooseWinner}
+          />
         )}
-        {player && round && !is_card_czar && !answered && (
-          <div className="container">
-            <h4 className="text-center">COMPLETE THE SENTENCES...</h4>
-            <div className="row">
-              {player.answers.map((answer, i) => {
-                return (
-                  <div key={i} className="col-lg-3 col-6">
-                    <button className="btn btn-link" onClick={e => this.onAnswer(e, answer)}>
-                      <div className="card p-3 mb-3">
-                        <div className="card-body">
-                          <div className="card-text" dangerouslySetInnerHTML={{ __html: answer.text }} />
-                        </div>
-                      </div>
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-        {player && round && !is_card_czar && !answers && answered && (
-          <div className="container ">
-            <h4>
-              Wait for <strong>{round.card_czar.name}</strong> to choose the winner...
-            </h4>
-          </div>
-        )}
+        {player && round && !is_card_czar && !answered && <CardsList onAnswer={this.onAnswer} player={player} />}
       </div>
     );
   }
@@ -225,14 +92,12 @@ class Main extends PureComponent {
   componentDidMount() {
     this.socket = socketIOClient();
     this.socket.on('game:created', game_uuid => {
-      console.log('Got', game_uuid);
       this.setState({ game_uuid });
     });
     this.socket.on('game:joined', player => {
       this.setState({ player });
     });
     this.socket.on('game:join_error', message => {
-      console.log('Got', message);
       this.setState({ game_uuid: null });
       akToast(message, 3000, true);
     });
@@ -340,8 +205,7 @@ class Main extends PureComponent {
     this.socket.emit('Bye');
   }
 
-  onAnswer = (e, answer) => {
-    e.preventDefault();
+  onAnswer = answer => {
     if (!this.state.round) {
       return;
     }
@@ -358,10 +222,9 @@ class Main extends PureComponent {
   };
 
   onCreateGame = () => {
-    this.setState({ owner: true }, () => {
-      this.askName(() => {
-        this.socket.emit('game:create', this.state.name);
-      });
+    this.askName(() => {
+      this.socket.emit('game:create', this.state.name);
+      this.setState({ owner: true });
     });
   };
 
@@ -424,27 +287,6 @@ class Main extends PureComponent {
   onGameStart = () => {
     this.socket.emit('game:start');
   };
-
-  _getFullTextAnswer() {
-    const { round, answer } = this.state;
-    if (!answer) {
-      return round.question.text;
-    }
-    const { question } = round;
-    let text = question.text;
-    if (text.indexOf('_') < 0) {
-      text += `<strong>${answer.text}</strong>`;
-    } else {
-      if (question.numAnswers === 1) {
-        text = text.replace('_', ` <strong>${answer.text}</strong> `);
-      } else if (question.numAnswers > 1) {
-        for (let i = 0; i < question.numAnswers; i++) {
-          text = text.replace('_', ` <strong>${answer.text[i]}</strong> `);
-        }
-      }
-    }
-    return text;
-  }
 
   onChooseWinner = answer => {
     this.socket.emit('round:winner', answer);

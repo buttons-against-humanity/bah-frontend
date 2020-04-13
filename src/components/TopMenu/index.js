@@ -1,9 +1,9 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Link, withRouter } from 'react-router-dom';
 import settings from '../../lib/settings';
 
-class TopMenu extends Component {
+class TopMenu extends PureComponent {
   static propTypes = {
     location: PropTypes.object.isRequired,
     history: PropTypes.object.isRequired
@@ -12,7 +12,7 @@ class TopMenu extends Component {
   render() {
     return (
       <nav className="navbar navbar-expand-lg bg-dark">
-        <Link to="/" className="navbar-brand" href="#">
+        <Link to="/" className="navbar-brand">
           {settings.appDescription}
         </Link>
       </nav>
