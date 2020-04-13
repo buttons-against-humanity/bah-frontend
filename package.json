@@ -1,6 +1,6 @@
 {
   "name": "pcah-frontend",
-  "description": "Personal Cards Agains Humanity",
+  "description": "Personal Cards Against Humanity",
   "version": "0.1.0",
   "private": true,
   "proxy": "http://localhost:8080",
