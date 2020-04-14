@@ -22,7 +22,8 @@ const initialState = {
   next_round: false,
   answered: false,
   rounds: 0,
-  round_end_at: false
+  round_end_at: false,
+  config: {}
 };
 
 class Main extends PureComponent {
@@ -41,7 +42,8 @@ class Main extends PureComponent {
       answer,
       next_round,
       answered,
-      round_end_at
+      round_end_at,
+      config
     } = this.state;
     const is_card_czar = round && round.card_czar.uuid === player.uuid;
 
@@ -53,8 +55,10 @@ class Main extends PureComponent {
     return (
       <div className="main-wrapper">
         <PlayersBar players={players} round={round} />
-        <div className="p-5 text-center">
-          {!game_uuid && <Homepage onCreateGame={this.onCreateGame} onJoinGame={this.onJoinGame} />}
+        <div className="p-3 text-center">
+          {!game_uuid && (
+            <Homepage onCreateGame={this.onCreateGame} onJoinGame={this.onJoinGame} slackin_url={config.slackin} />
+          )}
           {game_uuid && owner && !round && !next_round && (
             <OwnerInitialPage players={players} game_uuid={game_uuid} onGameStart={this.onGameStart} />
           )}
@@ -91,6 +95,9 @@ class Main extends PureComponent {
 
   componentDidMount() {
     this.socket = socketIOClient();
+    this.socket.on('welcome', config => {
+      this.setState({ config });
+    });
     this.socket.on('game:created', game_uuid => {
       this.setState({ game_uuid });
     });
