@@ -1,7 +1,7 @@
 {
   "name": "bah-frontend",
   "description": "Buttons Against Humanity",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "repository": "https://github.com/buttons-against-humanity/bah-frontend.git",
   "proxy": "http://localhost:8080",
