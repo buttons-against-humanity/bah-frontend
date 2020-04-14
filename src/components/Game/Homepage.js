@@ -12,7 +12,7 @@ const Homepage = props => {
     <div className="container text-center">
       <div className="alert alert-dark mt-4 text-left">
         <p>
-          <strong>Buttons Against Humanity</strong> is a party game for horrible people. <br />
+          <strong>Buttons Against Humanity</strong> is an online party game for horrible people. <br />
           Unlike most of the party games you've played before, <strong>Buttons Against Humanity</strong> is as
           despicable and awkward as you and your friends.
           <br />
@@ -24,7 +24,7 @@ const Homepage = props => {
         <p className="mt-5">
           This is a online clone of{' '}
           <a href="https://www.cardsagainsthumanity.com/" target="_blank" rel="noopener noreferrer">
-            Cards Against Humanity Game
+            Cards Against Humanity
           </a>
         </p>
         <p className="mt-5">
