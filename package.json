@@ -3,6 +3,7 @@
   "description": "Buttons Against Humanity",
   "version": "0.2.0",
   "private": true,
+  "repository": "https://github.com/buttons-against-humanity/bah-frontend.git",
   "proxy": "http://localhost:8080",
   "author": "Michele <macno@authkeys.io> (macno)",
   "license": "Apache-2.0",
