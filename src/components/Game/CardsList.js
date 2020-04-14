@@ -11,18 +11,16 @@ class CardsList extends PureComponent {
     const { player, onAnswer } = this.props;
     return (
       <div className="container">
-        <h4 className="text-center">COMPLETE THE SENTENCES...</h4>
+        <h4 className="text-center">COMPLETE THE SENTENCE...</h4>
         <div className="row">
           {player.answers.map((answer, i) => {
             return (
-              <div key={i} className="col-lg-3 col-6">
-                <button className="btn btn-link" onClick={() => onAnswer(answer)}>
-                  <div className="card p-3 mb-3">
-                    <div className="card-body">
-                      <div className="card-text" dangerouslySetInnerHTML={{ __html: answer.text }} />
-                    </div>
-                  </div>
-                </button>
+              <div key={i} className="col-lg-3 col-6 mb-3">
+                <button
+                  className="btn btn-dark p-4 w-100"
+                  onClick={() => onAnswer(answer)}
+                  dangerouslySetInnerHTML={{ __html: answer.text }}
+                />
               </div>
             );
           })}
