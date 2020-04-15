@@ -1,20 +1,5 @@
 import settings from '../settings';
 import ApiError from '../apierror';
-import { akAlert } from '../../components/Common/AKAlertConfirm';
-import { doLogout } from '../models/user';
-import { getStoreDispatch } from '../../store';
-
-/*
-import { SESSION_TOKEN } from '../models/user';
-
-const getBearerToken = () => {
-  let token = sessionStorage.getItem(SESSION_TOKEN);
-  if (!token) {
-    token = localStorage.getItem(SESSION_TOKEN);
-  }
-  return token;
-};
-*/
 
 export function getData(path) {
   return sendData(path, undefined, undefined, 'GET');
@@ -86,10 +71,6 @@ async function sendData(path, data, contentType, method) {
       // Session expired?
       if (response.status === 401) {
         // Force logout..
-        // But I need dispatch
-        akAlert('Session expired!', () => {
-          getStoreDispatch()(doLogout());
-        });
         return;
       }
       if (resContentLength > 0) {

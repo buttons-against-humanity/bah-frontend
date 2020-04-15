@@ -6,6 +6,7 @@ import { ConnectedRouter } from 'connected-react-router';
 import { history } from './store';
 import TopMenu from './components/TopMenu';
 import Main from './components/Main';
+import Cockpit from './components/Cockpit';
 
 class BaseAppComp extends PureComponent {
   static propTypes = {
@@ -24,6 +25,7 @@ class BaseAppComp extends PureComponent {
               </div>
               <div className="main-outer flex-grow-1">
                 <Switch>
+                  <Route path="/cockpit" component={Cockpit} />
                   <Route path="/" component={Main} />
                 </Switch>
               </div>
