@@ -1,5 +1,7 @@
 # Buttons Against Humanity
 
+[![](https://images.microbadger.com/badges/version/buttonsagainsthumanity/bah-frontend.svg)](https://microbadger.com/images/buttonsagainsthumanity/bah-frontend "Get your own version badge on microbadger.com")
+
 Frontend
 
 ## Credit & Licensing
