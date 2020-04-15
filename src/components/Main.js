@@ -9,6 +9,7 @@ import RoundHeader from './Game/RoundHeader';
 import CardsList from './Game/CardsList';
 import OwnerInitialPage from './Game/OwnerInitialPage';
 import OwnerNextRound from './Game/OwnerNextRound';
+import CreateGame from './Game/CreateGame';
 
 const initialState = {
   name: '',
@@ -23,7 +24,8 @@ const initialState = {
   answered: false,
   rounds: 0,
   round_end_at: false,
-  config: {}
+  config: {},
+  creating_game: false
 };
 
 class Main extends PureComponent {
@@ -43,7 +45,8 @@ class Main extends PureComponent {
       next_round,
       answered,
       round_end_at,
-      config
+      config,
+      creating_game
     } = this.state;
     const is_card_czar = round && round.card_czar.uuid === player.uuid;
 
@@ -52,6 +55,9 @@ class Main extends PureComponent {
       has_valid_answers = answers.some(answer => !!answer.text);
     }
 
+    if (creating_game) {
+      return <CreateGame onCreateGame={this._onCreateGame} onAbort={() => this.setState({ creating_game: false })} />;
+    }
     return (
       <div className="main-wrapper">
         <PlayersBar players={players} round={round} />
@@ -229,10 +235,22 @@ class Main extends PureComponent {
   };
 
   onCreateGame = () => {
-    this.askName(() => {
-      this.socket.emit('game:create', this.state.name);
-      this.setState({ owner: true });
+    this.setState({
+      creating_game: true
     });
+  };
+
+  _onCreateGame = (name, expansions = false) => {
+    this.setState(
+      {
+        creating_game: false,
+        name,
+        owner: true
+      },
+      () => {
+        this.socket.emit('game:create', { owner: name, expansions });
+      }
+    );
   };
 
   onEndGame = () => {
