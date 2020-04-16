@@ -240,7 +240,7 @@ class Main extends PureComponent {
     });
   };
 
-  _onCreateGame = (name, expansions = false) => {
+  _onCreateGame = (name, rounds, expansions = false) => {
     this.setState(
       {
         creating_game: false,
@@ -248,7 +248,7 @@ class Main extends PureComponent {
         owner: true
       },
       () => {
-        this.socket.emit('game:create', { owner: name, expansions });
+        this.socket.emit('game:create', { owner: name, rounds, expansions });
       }
     );
   };

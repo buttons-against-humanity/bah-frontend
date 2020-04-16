@@ -27,3 +27,10 @@ export const getReadableFileSizeString = function(fileSizeInBytes) {
 
   return Math.max(fileSizeInBytes, 0.1).toFixed(1) + byteUnits[i];
 };
+
+export const getPlayersNumber = (rounds, questions, answers) => {
+  const playersByQuestions = questions / rounds;
+  const playersByAnswers = answers / (9 + rounds); // actually answers / (10 + rounds - 1)
+  const players = Math.max(playersByAnswers, playersByQuestions);
+  return Math.floor(players);
+};
