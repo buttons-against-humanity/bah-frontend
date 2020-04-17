@@ -18,13 +18,14 @@ class RoundHeader extends PureComponent {
     answered: PropTypes.bool.isRequired,
     round_end_at: PropTypes.number,
     round: PropTypes.object,
-    answer: PropTypes.object,
+    answer: PropTypes.any,
     onConfirmAnswer: PropTypes.func.isRequired,
     onAnswerTimeout: PropTypes.func.isRequired
   };
 
   render() {
-    const { is_card_czar, answered, answer, round_end_at, onConfirmAnswer, onAnswerTimeout } = this.props;
+    const { is_card_czar, answered, answer, round_end_at, onConfirmAnswer, onAnswerTimeout, round } = this.props;
+    const got_answer = answer && round.question.numAnswers === answer.length;
     return (
       <div className="container text-center mb-4">
         {is_card_czar && !answered && <h5>Wait for the other players' answers</h5>}
@@ -41,11 +42,12 @@ class RoundHeader extends PureComponent {
         )}
         <div className="alert alert-dark">
           <p className="display-4" dangerouslySetInnerHTML={{ __html: this._getFullTextAnswer() }} />
-          {answer && !answered && (
+          {got_answer && !answered && (
             <button className="btn btn-dark" onClick={onConfirmAnswer}>
               CONFIRM
             </button>
           )}
+          {!is_card_czar && !got_answer && <p className="mt-3">Pick {round.question.numAnswers}</p>}
         </div>
       </div>
     );
@@ -60,16 +62,12 @@ class RoundHeader extends PureComponent {
     let text = htmlToText(question.text);
 
     if (text.indexOf('_') < 0) {
-      const answer_text = htmlToText(answer.text);
-      text += `<strong>${answer_text}</strong>`;
+      for (let i = 0; i < answer.length; i++) {
+        text += `&nbsp<strong>${htmlToText(answer[i].text)}</strong>`;
+      }
     } else {
-      if (question.numAnswers === 1) {
-        const answer_text = htmlToText(answer.text);
-        text = text.replace('_', ` <strong>${answer_text}</strong> `);
-      } else if (question.numAnswers > 1) {
-        for (let i = 0; i < question.numAnswers; i++) {
-          text = text.replace('_', ` <strong>${answer.text[i]}</strong> `);
-        }
+      for (let i = 0; i < answer.length; i++) {
+        text = text.replace('_', ` <strong>${answer[i].text}</strong> `);
       }
     }
     return text;

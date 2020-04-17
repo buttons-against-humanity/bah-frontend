@@ -164,7 +164,6 @@ class CreateGame extends PureComponent {
     if (rounds === Infinity || String(rounds) !== e.target.value || rounds < 1 || rounds > 100) {
       return;
     }
-    console.log(rounds);
     this.setState({ rounds });
   };
 
@@ -177,7 +176,6 @@ class CreateGame extends PureComponent {
       _next_expansions = expansions.map(a => a);
       _next_expansions.push(expansion);
     }
-    console.log('expansions', _next_expansions);
     this.setState({ expansions: _next_expansions });
   };
 

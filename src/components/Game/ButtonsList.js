@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 
-class CardsList extends PureComponent {
+class ButtonsList extends PureComponent {
   static propTypes = {
     player: PropTypes.object.isRequired,
     onAnswer: PropTypes.func.isRequired
@@ -30,4 +30,4 @@ class CardsList extends PureComponent {
   }
 }
 
-export default CardsList;
+export default ButtonsList;
