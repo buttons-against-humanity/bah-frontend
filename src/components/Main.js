@@ -6,7 +6,7 @@ import PlayersBar from './Game/PlayersBar';
 import Homepage from './Game/Homepage';
 import AnswersList from './Game/AnswersList';
 import RoundHeader from './Game/RoundHeader';
-import CardsList from './Game/CardsList';
+import ButtonsList from './Game/ButtonsList';
 import OwnerInitialPage from './Game/OwnerInitialPage';
 import OwnerNextRound from './Game/OwnerNextRound';
 import CreateGame from './Game/CreateGame';
@@ -19,7 +19,7 @@ const initialState = {
   players: [],
   round: null,
   answers: undefined,
-  answer: undefined,
+  answer: [],
   next_round: false,
   answered: false,
   rounds: 0,
@@ -94,7 +94,7 @@ class Main extends PureComponent {
             onChooseWinner={this.onChooseWinner}
           />
         )}
-        {player && round && !is_card_czar && !answered && <CardsList onAnswer={this.onAnswer} player={player} />}
+        {player && round && !is_card_czar && !answered && <ButtonsList onAnswer={this.onAnswer} player={player} />}
       </div>
     );
   }
@@ -182,7 +182,7 @@ class Main extends PureComponent {
       this.setState({
         round,
         answers: undefined,
-        answer: undefined,
+        answer: [],
         next_round: false,
         answered: false,
         round_end_at: Date.now() + 60000
@@ -222,7 +222,15 @@ class Main extends PureComponent {
     if (!this.state.round) {
       return;
     }
-    this.setState({ answer });
+    const { round, answer: currentAnswer } = this.state;
+    const { numAnswers } = round.question;
+
+    const newAnswer = [];
+    if (currentAnswer.length < numAnswers) {
+      currentAnswer.forEach(ans => newAnswer.push(ans));
+    }
+    newAnswer.push(answer);
+    this.setState({ answer: newAnswer });
   };
 
   onConfirmAnswer = () => {
