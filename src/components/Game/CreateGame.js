@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { doGetCockpitExpansions } from '../../modules/cockpit';
 import { getPlayersNumber } from '../../lib/utils/commonutils';
+import { STORAGE_KEY_PLAYER_NAME } from '../Main';
 
 class CreateGame extends PureComponent {
   static propTypes = {
@@ -18,6 +19,9 @@ class CreateGame extends PureComponent {
     expansions: [],
     choose: false
   };
+
+  ref_player_name = React.createRef();
+  ref_rounds = React.createRef();
 
   render() {
     const { name, rounds, expansions, choose } = this.state;
@@ -45,6 +49,7 @@ class CreateGame extends PureComponent {
             <div className="form-group mb-2">
               <label>Choose a Nickname</label>
               <input
+                ref={this.ref_player_name}
                 placeholder="Choose a Nickname"
                 className="form-control"
                 type="text"
@@ -56,6 +61,7 @@ class CreateGame extends PureComponent {
               <div className="form-group mb-2">
                 <label>Rounds</label>
                 <input
+                  ref={this.ref_rounds}
                   placeholder="Choose n° of Rounds"
                   className="form-control"
                   type="text"
@@ -148,9 +154,13 @@ class CreateGame extends PureComponent {
   }
 
   componentDidMount() {
-    const playerName = localStorage.getItem('player_name');
+    const playerName = localStorage.getItem(STORAGE_KEY_PLAYER_NAME);
     if (playerName) {
-      this.setState({ name: playerName });
+      this.setState({ name: playerName }, () => {
+        this.ref_rounds.current.focus();
+      });
+    } else {
+      this.ref_player_name.current.focus();
     }
     if (!this.props.cockpit.loaded) {
       this.props.dispatch(doGetCockpitExpansions());
@@ -193,7 +203,7 @@ class CreateGame extends PureComponent {
     if (!rounds) {
       return;
     }
-    localStorage.setItem('player_name', name);
+    localStorage.setItem(STORAGE_KEY_PLAYER_NAME, name);
     if (expansions.length === 0) {
       this.props.onCreateGame(name, rounds);
     } else {
