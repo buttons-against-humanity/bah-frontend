@@ -66,7 +66,12 @@ class Main extends PureComponent {
             <Homepage onCreateGame={this.onCreateGame} onJoinGame={this.onJoinGame} slackin_url={config.slackin} />
           )}
           {game_uuid && owner && !round && !next_round && (
-            <OwnerInitialPage players={players} game_uuid={game_uuid} onGameStart={this.onGameStart} />
+            <OwnerInitialPage
+              players={players}
+              game_uuid={game_uuid}
+              onGameStart={this.onGameStart}
+              onGameEnd={this.onEndGame}
+            />
           )}
           {game_uuid && !owner && !round && !next_round && (
             <div className="alert p-3 alert-dark">Waiting game to start...</div>
@@ -140,6 +145,10 @@ class Main extends PureComponent {
       this.setState({ round: _round });
     });
     this.socket.on('game:ended', () => {
+      if (!this.state.players || this.state.players.length < 2) {
+        this.setState(Object.assign({}, initialState));
+        return;
+      }
       akAlert(
         <div>
           <ul className="list-group">
