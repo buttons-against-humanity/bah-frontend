@@ -8,14 +8,18 @@ class AlertConfirm extends PureComponent {
     this.inputRef = React.createRef();
   }
   render() {
-    const { title, message, onOk, onCancel, inputtype, size, placeholder } = this.props;
+    const { title, message, onOk, onCancel, inputtype, size, placeholder, closeOnOutClick } = this.props;
     let dialogSize = size || 'sm';
     return (
       <div className="ak-confirm-alert">
         <div
           className="modal fade show"
           style={{ display: 'block', zIndex: 10005 }}
-          onClick={e => this.unrender(onCancel || onOk)}
+          onClick={e => {
+            if (closeOnOutClick) {
+              this.unrender(onCancel || onOk);
+            }
+          }}
         >
           <div className={'modal-dialog modal-dialog-centered modal-' + dialogSize} role="document">
             <div className="modal-content " onClick={e => e.stopPropagation()}>
@@ -89,9 +93,12 @@ class AlertConfirm extends PureComponent {
   }
 
   componentDidMount() {
-    const { inputtype } = this.props;
+    const { inputtype, defaultValue } = this.props;
     if (inputtype) {
       this.inputRef.current.focus();
+    }
+    if (defaultValue) {
+      this.setState({ input: defaultValue });
     }
   }
 
@@ -110,7 +117,9 @@ class AlertConfirm extends PureComponent {
   };
 }
 
-export const AKAlertConfirm = (title, message, onOk, onCancel, inputtype, size, placeholder) => {
+export const AKAlertConfirm = opts => {
+  const { title, message, onOk, onCancel, inputtype, defaultValue, size, placeholder, closeOnOutClick } = opts;
+
   const elementRootName = document.createElement('div');
   document.body.appendChild(elementRootName);
   ReactDOM.render(
@@ -120,9 +129,11 @@ export const AKAlertConfirm = (title, message, onOk, onCancel, inputtype, size, 
       onOk={onOk}
       onCancel={onCancel}
       inputtype={inputtype}
+      defaultValue={defaultValue}
       elementRootName={elementRootName}
       size={size}
       placeholder={placeholder}
+      closeOnOutClick={closeOnOutClick}
     />,
     elementRootName
   );
@@ -137,13 +148,18 @@ export const akAlert = (message, title, onOk) => {
   } else {
     title = 'ALERT';
   }
-  return AKAlertConfirm(title, message, onOk);
+  return AKAlertConfirm({ title, message, onOk });
 };
 
-export const akConfirm = (message, onOk, onCancel) => {
-  return AKAlertConfirm('CONFIRM', message, onOk, onCancel);
-};
-
-export const akPrompt = (message, onOk, onCancel, inputtype, title = 'PROMPT') => {
-  return AKAlertConfirm(title, message, onOk, onCancel, inputtype || 'text');
+export const akPrompt = opts => {
+  const { message, onOk, onCancel, inputtype, title, size, defaultValue } = opts;
+  return AKAlertConfirm({
+    title: title || 'PROMPT',
+    defaultValue,
+    message,
+    onOk,
+    onCancel,
+    size,
+    inputtype: inputtype || 'text'
+  });
 };

@@ -11,6 +11,7 @@ import OwnerInitialPage from './Game/OwnerInitialPage';
 import OwnerNextRound from './Game/OwnerNextRound';
 import CreateGame from './Game/CreateGame';
 
+export const STORAGE_KEY_PLAYER_NAME = 'player_name';
 const initialState = {
   name: '',
   game_uuid: null,
@@ -279,29 +280,26 @@ class Main extends PureComponent {
   };
 
   askName = cb => {
-    if (this.state.name) {
-      cb();
-      return;
-    }
-    akPrompt(
-      "What's your nickname ?",
-      name => {
+    const nickname = localStorage.getItem(STORAGE_KEY_PLAYER_NAME);
+    akPrompt({
+      message: "What's your nickname ?",
+      onOk: name => {
         name = name.trim();
         if (!name) {
           return;
         }
+        localStorage.setItem(STORAGE_KEY_PLAYER_NAME, name);
         this.setState({ name }, cb);
       },
-      null,
-      'text',
-      'NICKNAME'
-    );
+      title: 'NICKNAME',
+      defaultValue: nickname
+    });
   };
 
   askGameUUID = () => {
-    akPrompt(
-      'Please insert Game UUID',
-      game_uuid => {
+    akPrompt({
+      message: 'Please insert Game UUID',
+      onOk: game_uuid => {
         game_uuid = game_uuid.trim();
         if (!game_uuid) {
           return;
@@ -320,10 +318,8 @@ class Main extends PureComponent {
           }
         );
       },
-      () => {},
-      'text',
-      'GAME'
-    );
+      title: 'GAME'
+    });
   };
 
   onGameStart = () => {
