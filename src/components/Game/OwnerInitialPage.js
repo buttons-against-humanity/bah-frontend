@@ -8,7 +8,8 @@ class OwnerInitialPage extends PureComponent {
   static propTypes = {
     game_uuid: PropTypes.string.isRequired,
     players: PropTypes.array.isRequired,
-    onGameStart: PropTypes.func.isRequired
+    onGameStart: PropTypes.func.isRequired,
+    onGameEnd: PropTypes.func.isRequired
   };
 
   render() {
@@ -25,11 +26,15 @@ class OwnerInitialPage extends PureComponent {
         </button>
         <div className="m-3">
           <button
-            className="btn btn-danger"
+            className="btn btn-success mt-2"
             disabled={this.props.players.length === 0}
             onClick={this.props.onGameStart}
           >
             START
+          </button>
+
+          <button className="btn btn-danger ml-4 mt-2" onClick={this.props.onGameEnd}>
+            ABORT
           </button>
         </div>
       </div>
