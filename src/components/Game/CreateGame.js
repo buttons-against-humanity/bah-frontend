@@ -14,7 +14,7 @@ class CreateGame extends PureComponent {
 
   state = {
     name: '',
-    rounds: '',
+    rounds: '20',
     expansions: [],
     choose: false
   };
@@ -34,23 +34,19 @@ class CreateGame extends PureComponent {
     return (
       <div className="container text-center">
         <div className="alert alert-dark mt-4 text-left">
-          <div className="row">
-            <div className="col-9">
-              <h2>Create a new game</h2>
-            </div>
-            <div className="col-1 offset-2">
-              <button className="btn btn-danger float-right" onClick={this.props.onAbort}>
-                &times;
-              </button>
-            </div>
+          <div className="float-right">
+            <button className="btn btn-danger float-right" onClick={this.props.onAbort}>
+              &times;
+            </button>
           </div>
+          <h2>Create a new game</h2>
 
           <form onSubmit={this.onCreate}>
             <div className="form-group mb-2">
               <label>Choose a Nickname</label>
               <input
                 placeholder="Choose a Nickname"
-                className="form-control ml-2"
+                className="form-control"
                 type="text"
                 value={name}
                 onChange={e => this.setState({ name: e.target.value })}
@@ -61,91 +57,101 @@ class CreateGame extends PureComponent {
                 <label>Rounds</label>
                 <input
                   placeholder="Choose n° of Rounds"
-                  className="form-control ml-2"
+                  className="form-control"
                   type="text"
                   value={rounds}
                   onChange={this.changeRounds}
                 />
               </div>
             )}
-          </form>
-          {!cockpit.loaded && (
-            <div className="progress">
-              <div
-                className="progress-bar progress-bar-striped bg-success"
-                role="progressbar"
-                style={{ width: '25%' }}
-              />
-            </div>
-          )}
-          {cockpit.loaded && rounds && (
-            <div>
-              <div className="mb-3">
-                Select expansions (default: All){' '}
-                <button
-                  className="btn btn-dark mx-4"
-                  disabled={expansions.length === 0}
-                  onClick={() => this.setState({ expansions: [], choose: false })}
-                >
-                  ALL
-                </button>
-                <button
-                  className="btn btn-dark mx-4"
-                  disabled={expansions.length > 0}
-                  onClick={() => this.setState({ choose: true })}
-                >
-                  CHOOSE
-                </button>
-                {expansions.length > 0 && <span className="ml-3">Expansions: {expansions.length}</span>}
-                {expansions.length > 0 && <span className="ml-3">Questions: {currentQuestions}</span>}
-                {expansions.length > 0 && <span className="ml-3">Answers: {currentAnswers}</span>}
-                {expansions.length > 0 && (
-                  <div className="ml-3">
-                    You have got enough questions/answers for{' '}
-                    {getPlayersNumber(rounds, currentQuestions, currentAnswers)} players
+
+            {!cockpit.loaded && (
+              <div className="progress">
+                <div
+                  className="progress-bar progress-bar-striped bg-success"
+                  role="progressbar"
+                  style={{ width: '25%' }}
+                />
+              </div>
+            )}
+            {cockpit.loaded && rounds && (
+              <div>
+                <div className="mb-3">
+                  Select expansions (default: All){' '}
+                  <button
+                    type="button"
+                    className="btn btn-dark mx-4"
+                    disabled={expansions.length === 0}
+                    onClick={() => this.setState({ expansions: [], choose: false })}
+                  >
+                    ALL
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-dark mx-4"
+                    disabled={expansions.length > 0}
+                    onClick={() => this.setState({ choose: true })}
+                  >
+                    CHOOSE
+                  </button>
+                  {expansions.length > 0 && <span className="ml-3">Expansions: {expansions.length}</span>}
+                  {expansions.length > 0 && <span className="ml-3">Questions: {currentQuestions}</span>}
+                  {expansions.length > 0 && <span className="ml-3">Answers: {currentAnswers}</span>}
+                  <div className={expansions.length > 0 ? 'visible' : 'invisible'}>
+                    <p className="alert alert-info mt-2">
+                      <span>
+                        You have got enough questions/answers for{' '}
+                        {getPlayersNumber(rounds, currentQuestions, currentAnswers)} players
+                      </span>
+                    </p>
+                  </div>
+                </div>
+                {choose && (
+                  <div style={{ height: '50vh', overflow: 'auto' }}>
+                    <div className="list-group">
+                      {Object.keys(cockpit.expansions).map((name, i) => {
+                        const expansion = cockpit.expansions[name];
+                        expansion.name = name;
+                        return (
+                          <button
+                            onClick={() => this.onExpansionClick(expansion)}
+                            type="button"
+                            key={i}
+                            className={'list-group-item' + (expansions.includes(expansion) ? ' active' : '')}
+                          >
+                            <span dangerouslySetInnerHTML={{ __html: name }} />
+                            <span className="ml-4">Q: {expansion.q}</span>
+                            <span className="ml-4">A: {expansion.a}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
               </div>
-              {choose && (
-                <div style={{ height: '50vh', overflow: 'auto' }}>
-                  <div className="list-group">
-                    {Object.keys(cockpit.expansions).map((name, i) => {
-                      const expansion = cockpit.expansions[name];
-                      expansion.name = name;
-                      return (
-                        <button
-                          onClick={() => this.onExpansionClick(expansion)}
-                          type="button"
-                          key={i}
-                          className={'list-group-item' + (expansions.includes(expansion) ? ' active' : '')}
-                        >
-                          <span dangerouslySetInnerHTML={{ __html: name }} />
-                          <span className="ml-4">Q: {expansion.q}</span>
-                          <span className="ml-4">A: {expansion.a}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
+            )}
 
-          <div className="mt-2 text-center">
-            <button
-              className="btn btn-dark"
-              onClick={this.onCreate}
-              disabled={!name || !rounds || (expansions.length === 0 && choose)}
-            >
-              CREATE
-            </button>
-          </div>
+            <div className="mt-2 text-center">
+              <button
+                type="submit"
+                className="btn btn-dark"
+                onClick={this.onCreate}
+                disabled={!name || !rounds || (expansions.length === 0 && choose)}
+              >
+                CREATE
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     );
   }
 
   componentDidMount() {
+    const playerName = localStorage.getItem('player_name');
+    if (playerName) {
+      this.setState({ name: playerName });
+    }
     if (!this.props.cockpit.loaded) {
       this.props.dispatch(doGetCockpitExpansions());
     }
@@ -184,6 +190,10 @@ class CreateGame extends PureComponent {
     if (!name) {
       return;
     }
+    if (!rounds) {
+      return;
+    }
+    localStorage.setItem('player_name', name);
     if (expansions.length === 0) {
       this.props.onCreateGame(name, rounds);
     } else {
