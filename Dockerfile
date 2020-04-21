@@ -9,22 +9,16 @@ RUN npm ci --no-optional
 
 COPY . .
 
+ENV GENERATE_SOURCEMAP=false
+
 RUN npm run build
 
 # production image
-FROM node:12-alpine
-
-EXPOSE 8080
-
-ENV NODE_ENV=production
+FROM authkeys/nginx-spa:0.1.0
 
 WORKDIR /app
 
-RUN npm i -g serve
-
 COPY --from=builder /usr/src/app/build .
-
-CMD [ "serve", "-s", "-l", "8080" ]
 
 # Metadata
 LABEL name="bah-frontend" \
