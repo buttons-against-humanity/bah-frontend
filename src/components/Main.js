@@ -106,9 +106,22 @@ class Main extends PureComponent {
   }
 
   componentDidMount() {
-    this.socket = socketIOClient();
-    this.socket.on('welcome', config => {
-      this.setState({ config });
+    this.setupSocket();
+  }
+
+  componentWillUnmount() {
+    if (this.socket && this.socket.connected) {
+      this.socket.emit('bye', () => {
+        this.socket.close();
+      });
+    }
+  }
+
+  setupSocket() {
+    this.socket = socketIOClient({
+      autoConnect: false,
+      reconnectionDelay: 500,
+      reconnectionAttempts: 20
     });
     this.socket.on('game:created', game_uuid => {
       this.setState({ game_uuid });
@@ -147,6 +160,7 @@ class Main extends PureComponent {
     });
     this.socket.on('game:ended', () => {
       if (!this.state.players || this.state.players.length < 2) {
+        this.socket.close();
         this.setState(Object.assign({}, initialState));
         return;
       }
@@ -223,11 +237,6 @@ class Main extends PureComponent {
       );
     });
   }
-
-  componentWillUnmount() {
-    this.socket.emit('Bye');
-  }
-
   onAnswer = answer => {
     if (!this.state.round) {
       return;
@@ -266,7 +275,15 @@ class Main extends PureComponent {
         owner: true
       },
       () => {
-        this.socket.emit('game:create', { owner: name, rounds, expansions });
+        const sendMsg = () => {
+          this.socket.emit('game:create', { owner: name, rounds, expansions });
+        };
+        if (!this.socket.connected) {
+          this.socket.open();
+          setTimeout(sendMsg, 200);
+        } else {
+          sendMsg();
+        }
       }
     );
   };
@@ -310,10 +327,18 @@ class Main extends PureComponent {
           },
           () => {
             this.askName(() => {
-              this.socket.emit('game:join', {
-                game_uuid,
-                player_name: this.state.name
-              });
+              const sendMsg = () => {
+                this.socket.emit('game:join', {
+                  game_uuid,
+                  player_name: this.state.name
+                });
+              };
+              if (!this.socket.connected) {
+                this.socket.open();
+                setTimeout(sendMsg, 200);
+              } else {
+                sendMsg();
+              }
             });
           }
         );
