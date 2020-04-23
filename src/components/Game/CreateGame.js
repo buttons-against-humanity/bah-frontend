@@ -195,7 +195,8 @@ class CreateGame extends PureComponent {
     this.setState({ expansions: _next_expansions });
   };
 
-  onCreate = () => {
+  onCreate = e => {
+    e.preventDefault();
     const { name, rounds, expansions } = this.state;
     if (!name) {
       return;
