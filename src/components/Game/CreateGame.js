@@ -35,6 +35,7 @@ class CreateGame extends PureComponent {
         currentAnswers += expansion.a;
       });
     }
+    const hasCockpitManyExpansions = cockpit.loaded && Object.keys(cockpit.expansions).length > 1;
     return (
       <div className="container text-center">
         <div className="alert alert-dark mt-4 text-left">
@@ -80,14 +81,14 @@ class CreateGame extends PureComponent {
                 />
               </div>
             )}
-            {cockpit.loaded && rounds && (
+            {rounds && hasCockpitManyExpansions && (
               <div>
                 <div className="mb-3">
                   Select expansions (default: All){' '}
                   <button
                     type="button"
                     className="btn btn-dark mx-4"
-                    disabled={expansions.length === 0}
+                    disabled={expansions.length === 0 && !choose}
                     onClick={() => this.setState({ expansions: [], choose: false })}
                   >
                     ALL
@@ -95,10 +96,10 @@ class CreateGame extends PureComponent {
                   <button
                     type="button"
                     className="btn btn-dark mx-4"
-                    disabled={expansions.length > 0}
+                    disabled={expansions.length > 0 || choose}
                     onClick={() => this.setState({ choose: true })}
                   >
-                    CHOOSE
+                    SELECT
                   </button>
                   {expansions.length > 0 && <span className="ml-3">Expansions: {expansions.length}</span>}
                   {expansions.length > 0 && <span className="ml-3">Questions: {currentQuestions}</span>}
