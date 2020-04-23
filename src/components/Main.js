@@ -25,7 +25,6 @@ const initialState = {
   answered: false,
   rounds: 0,
   round_end_at: false,
-  config: {},
   creating_game: false
 };
 
@@ -46,7 +45,6 @@ class Main extends PureComponent {
       next_round,
       answered,
       round_end_at,
-      config,
       creating_game
     } = this.state;
     const is_card_czar = round && round.card_czar.uuid === player.uuid;
@@ -63,9 +61,7 @@ class Main extends PureComponent {
       <div className="main-wrapper">
         <PlayersBar players={players} round={round} />
         <div className="p-3 text-center">
-          {!game_uuid && (
-            <Homepage onCreateGame={this.onCreateGame} onJoinGame={this.onJoinGame} slackin_url={config.slackin} />
-          )}
+          {!game_uuid && <Homepage onCreateGame={this.onCreateGame} onJoinGame={this.onJoinGame} />}
           {game_uuid && owner && !round && !next_round && (
             <OwnerInitialPage
               players={players}
