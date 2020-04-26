@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { akAlert, akPrompt } from './Common/AKAlertConfirm';
+import { akPrompt } from './Common/AKAlertConfirm';
 import socketIOClient from 'socket.io-client';
 import { akToast } from './Common/AkToast';
 import PlayersBar from './Game/PlayersBar';
@@ -10,6 +10,7 @@ import ButtonsList from './Game/ButtonsList';
 import OwnerInitialPage from './Game/OwnerInitialPage';
 import OwnerNextRound from './Game/OwnerNextRound';
 import CreateGame from './Game/CreateGame';
+import Scoreboard from './Game/Scoreboard';
 
 export const STORAGE_KEY_PLAYER_NAME = 'player_name';
 const initialState = {
@@ -25,7 +26,10 @@ const initialState = {
   answered: false,
   rounds: 0,
   round_end_at: false,
-  creating_game: false
+  creating_game: false,
+  winner: false,
+  game_ended: false,
+  loading: false
 };
 
 class Main extends PureComponent {
@@ -46,20 +50,36 @@ class Main extends PureComponent {
       next_round,
       answered,
       round_end_at,
-      creating_game
+      creating_game,
+      winner,
+      game_ended,
+      loading
     } = this.state;
+    if (loading) {
+      return (
+        <div className="container mt-5">
+          <div className="progress">
+            <div className="progress-bar progress-bar-striped progress-bar-animated" style={{ width: '45%' }} />
+          </div>
+        </div>
+      );
+    }
+    if (creating_game) {
+      return <CreateGame onCreateGame={this._onCreateGame} onAbort={() => this.setState({ creating_game: false })} />;
+    }
+    if (game_ended) {
+      return <Scoreboard players={players} onContinue={this.onGameEnded} />;
+    }
     const is_card_czar = round && round.card_czar.uuid === player.uuid;
     let has_valid_answers = false;
     if (answers) {
       has_valid_answers = answers.some(answer => !!answer.text);
     }
-    if (creating_game) {
-      return <CreateGame onCreateGame={this._onCreateGame} onAbort={() => this.setState({ creating_game: false })} />;
-    }
     const isPlayoff = round && round.n === -999;
-    let isPlayoffPlayer = isPlayoff && round.players.includes(player.uuid);
+    const isPlayoffPlayer = isPlayoff && round.players.includes(player.uuid);
     const isRoundPlayer = player && round && !is_card_czar && ((isPlayoff && isPlayoffPlayer) || !isPlayoff);
     const showButtons = !answered && isRoundPlayer;
+
     return (
       <div className="main-wrapper">
         <PlayersBar isPlayoff={isPlayoff} player={player} players={players} round={round} rounds={rounds} />
@@ -74,10 +94,10 @@ class Main extends PureComponent {
             />
           )}
           {game_uuid && !owner && !round && !next_round && (
-            <div className="alert p-3 alert-dark">Waiting game to start...</div>
+            <div className="container alert p-3 alert-dark">Waiting for the game to start...</div>
           )}
           {owner && next_round && <OwnerNextRound onEndGame={this.onEndGame} onNextRound={this.onNextRound} />}
-          {!owner && next_round && <div className="alert p-3 alert-dark">Waiting for next round...</div>}
+          {!owner && next_round && <div className="container alert p-3 alert-dark">Waiting for the next round...</div>}
         </div>
         {round && !answers && (
           <RoundHeader
@@ -92,6 +112,7 @@ class Main extends PureComponent {
         )}
         {round && answers && (
           <AnswersList
+            winner={winner}
             card_czar_name={round.card_czar.name}
             is_card_czar={is_card_czar}
             has_valid_answers={has_valid_answers}
@@ -123,7 +144,7 @@ class Main extends PureComponent {
       reconnectionAttempts: 20
     });
     this.socket.on('game:created', game_uuid => {
-      this.setState({ game_uuid });
+      this.setState({ game_uuid, loading: false });
     });
     this.socket.on('game:joined', player => {
       this.setState({ player });
@@ -159,34 +180,12 @@ class Main extends PureComponent {
       this.setState({ round: _round });
     });
     this.socket.on('game:ended', () => {
+      this.socket.close();
       if (!this.state.players || this.state.players.length < 2) {
-        this.socket.close();
-        this.setState(Object.assign({}, initialState));
-        return;
+        this.onGameEnded();
+      } else {
+        this.setState({ game_ended: true });
       }
-      akAlert(
-        <div>
-          <ul className="list-group">
-            {this.state.players
-              .sort((a, b) => {
-                if (a.points > b.points) return -1;
-                if (a.points < b.points) return 1;
-                return 0;
-              })
-              .map((player, i) => {
-                return (
-                  <li key={i} className="list-group-item">
-                    {player.name} - Points: {player.points}
-                  </li>
-                );
-              })}
-          </ul>
-        </div>,
-        'Final scores',
-        () => {
-          this.setState(Object.assign({}, initialState));
-        }
-      );
     });
     this.socket.on('player:update', player => {
       console.log('player', player);
@@ -209,6 +208,7 @@ class Main extends PureComponent {
         answer: [],
         next_round: false,
         answered: false,
+        winner: false,
         round_end_at: Date.now() + 60000
       });
     });
@@ -216,27 +216,17 @@ class Main extends PureComponent {
       this.setState({ answers });
     });
     this.socket.on('round:winner', winner => {
-      this.setState(
-        {
-          next_round: true
-        },
-        () => {
-          akAlert(
-            <p>
-              {winner.player && (
-                <span>
-                  <strong>{winner.player}</strong> with:
-                </span>
-              )}
-              <br />
-              <span dangerouslySetInnerHTML={{ __html: winner.text }} />
-            </p>,
-            'ROUND WINNER'
-          );
-        }
-      );
+      this.setState({
+        next_round: true,
+        winner
+      });
     });
   }
+
+  onGameEnded = () => {
+    this.setState(Object.assign({}, initialState));
+  };
+
   onAnswer = answer => {
     if (!this.state.round) {
       return;
@@ -271,6 +261,7 @@ class Main extends PureComponent {
     this.setState(
       {
         creating_game: false,
+        loading: true,
         name,
         owner: true
       },
