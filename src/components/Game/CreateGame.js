@@ -207,11 +207,11 @@ class CreateGame extends PureComponent {
     }
     localStorage.setItem(STORAGE_KEY_PLAYER_NAME, name);
     if (expansions.length === 0) {
-      this.props.onCreateGame(name, rounds);
+      this.props.onCreateGame(name, Number(rounds));
     } else {
       this.props.onCreateGame(
         name,
-        rounds,
+        Number(rounds),
         expansions.map(expansion => expansion.name)
       );
     }
