@@ -14,28 +14,30 @@ class OwnerInitialPage extends PureComponent {
 
   render() {
     return (
-      <div className="alert p-3 alert-dark">
-        Game UUID: <strong>{this.props.game_uuid}</strong>
-        <button
-          type="button"
-          tabIndex={-1}
-          className="btn btn-link btn-sm align-baseline"
-          onClick={this.copyToClipboard}
-        >
-          <Octicon icon={Clippy} size="small" />
-        </button>
-        <div className="m-3">
+      <div className="container">
+        <div className="alert p-3 alert-dark">
+          Game UUID: <strong>{this.props.game_uuid}</strong>
           <button
-            className="btn btn-success mt-2"
-            disabled={this.props.players.length === 0}
-            onClick={this.props.onGameStart}
+            type="button"
+            tabIndex={-1}
+            className="btn btn-link btn-sm align-baseline"
+            onClick={this.copyToClipboard}
           >
-            START
+            <Octicon icon={Clippy} size="small" />
           </button>
+          <div className="m-3">
+            <button
+              className="btn btn-success mt-2"
+              disabled={this.props.players.length === 0}
+              onClick={this.props.onGameStart}
+            >
+              START
+            </button>
 
-          <button className="btn btn-danger ml-4 mt-2" onClick={this.props.onGameEnd}>
-            ABORT
-          </button>
+            <button className="btn btn-danger ml-4 mt-2" onClick={this.props.onGameEnd}>
+              ABORT
+            </button>
+          </div>
         </div>
       </div>
     );
