@@ -40,6 +40,7 @@ class Main extends PureComponent {
       player,
       players,
       round,
+      rounds,
       answers,
       answer,
       next_round,
@@ -59,7 +60,7 @@ class Main extends PureComponent {
     }
     return (
       <div className="main-wrapper">
-        <PlayersBar players={players} round={round} />
+        <PlayersBar player={player} players={players} round={round} rounds={rounds} />
         <div className="p-3 text-center">
           {!game_uuid && <Homepage onCreateGame={this.onCreateGame} onJoinGame={this.onJoinGame} />}
           {game_uuid && owner && !round && !next_round && (
@@ -132,8 +133,9 @@ class Main extends PureComponent {
     this.socket.on('game:players', players => {
       this.setState({ players });
     });
-    this.socket.on('game:started', () => {
+    this.socket.on('game:started', data => {
       akToast('Game Started!', 2000);
+      this.setState({ rounds: data.rounds });
     });
     this.socket.on('game:owner_change', owner => {
       if (owner.uuid === this.state.player.uuid) {

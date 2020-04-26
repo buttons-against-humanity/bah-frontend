@@ -4,11 +4,13 @@ import PropTypes from 'prop-types';
 class PlayersBar extends PureComponent {
   static propTypes = {
     round: PropTypes.object,
+    rounds: PropTypes.number,
+    player: PropTypes.object,
     players: PropTypes.array
   };
 
   render() {
-    const { players, round } = this.props;
+    const { player, players, round, rounds } = this.props;
     if (players.length === 0) {
       return null;
     }
@@ -24,17 +26,20 @@ class PlayersBar extends PureComponent {
               if (a.points < b.points) return 1;
               return 0;
             })
-            .map((player, i) => {
-              const card_czar = round && round.card_czar.uuid === player.uuid;
+            .map((_player, i) => {
+              const card_czar = round && round.card_czar.uuid === _player.uuid;
               return (
                 <span key={i} className={'ml-3 p-2 ' + (card_czar ? ' bg-dark text-white' : '')}>
-                  {player.name} - Points: {player.points}
+                  {_player.uuid === player.uuid ? ' * ' : ''}
+                  {_player.name} - Points: {_player.points}
                 </span>
               );
             })}
-          {round && (
+          {round && rounds > 0 && (
             <div className="float-right mr-3 p-2">
-              <strong>Round {round.n}</strong>
+              <strong>
+                Round {round.n} / {rounds}
+              </strong>
             </div>
           )}
         </div>
