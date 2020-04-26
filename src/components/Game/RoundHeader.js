@@ -14,7 +14,7 @@ const htmlToText = function(str) {
 
 class RoundHeader extends PureComponent {
   static propTypes = {
-    is_card_czar: PropTypes.bool.isRequired,
+    isRoundPlayer: PropTypes.bool.isRequired,
     answered: PropTypes.bool.isRequired,
     round_end_at: PropTypes.number,
     round: PropTypes.object,
@@ -24,12 +24,12 @@ class RoundHeader extends PureComponent {
   };
 
   render() {
-    const { is_card_czar, answered, answer, round_end_at, onConfirmAnswer, onAnswerTimeout, round } = this.props;
+    const { isRoundPlayer, answered, answer, round_end_at, onConfirmAnswer, onAnswerTimeout, round } = this.props;
     const got_answer = answer && round.question.numAnswers === answer.length;
     return (
       <div className="container text-center mb-4">
-        {is_card_czar && !answered && <h5>Wait for the other players' answers</h5>}
-        {!is_card_czar && !answered && (
+        {!isRoundPlayer && !answered && <h5>Wait for the other players' answers</h5>}
+        {isRoundPlayer && !answered && (
           <Countdown
             renderer={renderProps => {
               const { minutes, seconds } = renderProps.formatted;
@@ -47,7 +47,7 @@ class RoundHeader extends PureComponent {
               CONFIRM
             </button>
           )}
-          {!is_card_czar && !got_answer && <p className="mt-3">Pick {round.question.numAnswers}</p>}
+          {isRoundPlayer && !got_answer && <p className="mt-3">Pick {round.question.numAnswers}</p>}
         </div>
       </div>
     );

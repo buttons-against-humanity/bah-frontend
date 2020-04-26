@@ -6,11 +6,12 @@ class PlayersBar extends PureComponent {
     round: PropTypes.object,
     rounds: PropTypes.number,
     player: PropTypes.object,
-    players: PropTypes.array
+    players: PropTypes.array,
+    isPlayoff: PropTypes.bool
   };
 
   render() {
-    const { player, players, round, rounds } = this.props;
+    const { player, players, round, rounds, isPlayoff } = this.props;
     if (players.length === 0) {
       return null;
     }
@@ -37,9 +38,7 @@ class PlayersBar extends PureComponent {
             })}
           {round && rounds > 0 && (
             <div className="float-right mr-3 p-2">
-              <strong>
-                Round {round.n} / {rounds}
-              </strong>
+              <strong>{isPlayoff ? 'Playoff' : `Round ${round.n} / ${rounds}`}</strong>
             </div>
           )}
         </div>

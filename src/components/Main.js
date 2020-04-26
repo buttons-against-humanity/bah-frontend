@@ -49,18 +49,20 @@ class Main extends PureComponent {
       creating_game
     } = this.state;
     const is_card_czar = round && round.card_czar.uuid === player.uuid;
-
     let has_valid_answers = false;
     if (answers) {
       has_valid_answers = answers.some(answer => !!answer.text);
     }
-
     if (creating_game) {
       return <CreateGame onCreateGame={this._onCreateGame} onAbort={() => this.setState({ creating_game: false })} />;
     }
+    const isPlayoff = round && round.n === -999;
+    let isPlayoffPlayer = isPlayoff && round.players.includes(player.uuid);
+    const isRoundPlayer = player && round && !is_card_czar && ((isPlayoff && isPlayoffPlayer) || !isPlayoff);
+    const showButtons = !answered && isRoundPlayer;
     return (
       <div className="main-wrapper">
-        <PlayersBar player={player} players={players} round={round} rounds={rounds} />
+        <PlayersBar isPlayoff={isPlayoff} player={player} players={players} round={round} rounds={rounds} />
         <div className="p-3 text-center">
           {!game_uuid && <Homepage onCreateGame={this.onCreateGame} onJoinGame={this.onJoinGame} />}
           {game_uuid && owner && !round && !next_round && (
@@ -79,7 +81,7 @@ class Main extends PureComponent {
         </div>
         {round && !answers && (
           <RoundHeader
-            is_card_czar={is_card_czar}
+            isRoundPlayer={isRoundPlayer}
             answered={answered}
             onAnswerTimeout={this.onAnswerTimeout}
             onConfirmAnswer={this.onConfirmAnswer}
@@ -97,7 +99,7 @@ class Main extends PureComponent {
             onChooseWinner={this.onChooseWinner}
           />
         )}
-        {player && round && !is_card_czar && !answered && <ButtonsList onAnswer={this.onAnswer} player={player} />}
+        {showButtons && <ButtonsList onAnswer={this.onAnswer} player={player} />}
       </div>
     );
   }
