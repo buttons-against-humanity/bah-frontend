@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 
 class Scoreboard extends PureComponent {
   static propTypes = {
-    players: PropTypes.func.isRequired,
+    players: PropTypes.array.isRequired,
     onContinue: PropTypes.func.isRequired
   };
 
