@@ -17,7 +17,6 @@ class Cockpit extends PureComponent {
     return (
       <div className="mt-5 container">
         <div className="alert alert-dark p-5">
-          <h2>Cockpit</h2>
           <h4>Expansions</h4>
           <div className="row">
             {cockpit &&
