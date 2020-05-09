@@ -2,6 +2,7 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import Config, { setConfig } from '../../modules/config';
+import { Link } from 'react-router-dom';
 
 class Homepage extends PureComponent {
   static propTypes = {
@@ -27,12 +28,17 @@ class Homepage extends PureComponent {
             Button Czar has the hard work to choose the round's winner.
           </p>
           <p className="mt-5">
+            <Link className="btn btn-dark" to="/cockpit">
+              Explore all the extensions
+            </Link>
+          </p>
+          <p className="mt-5">
             This is a online clone of{' '}
             <a href="https://www.cardsagainsthumanity.com/" target="_blank" rel="noopener noreferrer">
               Cards Against Humanity
             </a>
           </p>
-          <p className="mt-5">
+          <p className="mt-3">
             Source code is available on{' '}
             <a href="https://github.com/buttons-against-humanity" target="_blank" rel="noopener noreferrer">
               GitHub

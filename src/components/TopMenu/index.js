@@ -15,7 +15,6 @@ class TopMenu extends PureComponent {
         <Link to="/" className="navbar-brand">
           {settings.appDescription}
         </Link>
-        <Link to="/cockpit">Cockpit</Link>
       </nav>
     );
   }
