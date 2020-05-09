@@ -2,7 +2,7 @@ import { getData } from '../../lib/utils/httputils';
 import cockpitReducer from './cockpitReducer';
 
 class Cockpit {
-  static apiPath = '/api/cockpit';
+  static apiPath = '/api/decks';
 
   static async getExpansions() {
     return getData(`${Cockpit.apiPath}/expansions`);
