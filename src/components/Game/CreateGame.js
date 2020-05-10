@@ -4,7 +4,9 @@ import { connect } from 'react-redux';
 import { doGetCockpitExpansions } from '../../modules/cockpit';
 import { getPlayersNumber } from '../../lib/utils/commonutils';
 import { STORAGE_KEY_PLAYER_NAME } from '../Main';
-import Octicon, { Search } from '@primer/octicons-react';
+import Octicon, { Search, Trashcan } from '@primer/octicons-react';
+import { akPrompt } from '../Common/AKAlertConfirm';
+import { addDeck, loadDecks, removeDeck } from '../../lib/utils/decksUtil';
 
 class CreateGame extends PureComponent {
   static propTypes = {
@@ -18,7 +20,9 @@ class CreateGame extends PureComponent {
     name: '',
     rounds: '20',
     expansions: [],
-    search: ''
+    search: '',
+    decks: [],
+    showDecks: false
   };
 
   ref_player_name = React.createRef();
@@ -33,7 +37,7 @@ class CreateGame extends PureComponent {
   }
 
   render() {
-    const { name, rounds, expansions, search } = this.state;
+    const { name, rounds, expansions, search, decks, showDecks } = this.state;
     const { cockpit } = this.props;
 
     let currentQuestions = 0;
@@ -55,7 +59,7 @@ class CreateGame extends PureComponent {
           </div>
           <h2>Create a new game</h2>
 
-          <form onSubmit={this.onCreate}>
+          <form onSubmit={e => e.preventDefault()}>
             <div className="form-group mb-2">
               <label>Choose a Nickname</label>
               <input
@@ -142,8 +146,27 @@ class CreateGame extends PureComponent {
                   </div>
                 </div>
                 <div className="col-6">
-                  <div className="mb-3">
-                    {expansions.length > 0 && (
+                  <div className="d-flex justify-content-between mb-2">
+                    <button
+                      className="btn btn-outline-dark"
+                      disabled={decks.length === 0}
+                      title={decks.length === 0 ? 'No decks saved' : 'Choose from your decks'}
+                      onClick={this.onShowDecks}
+                    >
+                      LOAD DECK
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-outline-dark"
+                      onClick={this.onSaveDeck}
+                      disabled={expansions.length < 2}
+                      title="Save current deck"
+                    >
+                      SAVE DECK
+                    </button>
+                  </div>
+                  {expansions.length > 0 && (
+                    <div className="mb-3">
                       <div className="mt-2">
                         <span className="">
                           <strong>Expansions:</strong> {expansions.length}
@@ -155,43 +178,43 @@ class CreateGame extends PureComponent {
                           <strong>Answers:</strong> {currentAnswers}
                         </span>
                       </div>
-                    )}
-                    <div className={expansions.length > 0 ? 'visible' : 'invisible'}>
+
                       <p className="alert alert-info mt-2">
                         <span>
                           There are enough questions/answers for{' '}
                           {getPlayersNumber(rounds, currentQuestions, currentAnswers)} players
                         </span>
                       </p>
-                    </div>
-                    <div style={{ height: '331px', overflow: 'auto' }}>
-                      <div className="list-group">
-                        {expansions.map((expansion, i) => {
-                          return (
-                            <button
-                              onClick={e => this.onExpansionClick(e, expansion)}
-                              type="button"
-                              key={i}
-                              className="text-left list-group-item"
-                            >
-                              <strong dangerouslySetInnerHTML={{ __html: expansion.name }} />
-                              <span className="ml-3">Q: {expansion.q}</span>
-                              <span className="ml-3">A: {expansion.a}</span>
-                              <br />
-                              <span className="">Language: {expansion.lang}</span>
-                            </button>
-                          );
-                        })}
+
+                      <div style={{ height: '286px', overflow: 'auto' }}>
+                        <div className="list-group">
+                          {expansions.map((expansion, i) => {
+                            return (
+                              <button
+                                onClick={e => this.onExpansionClick(e, expansion)}
+                                type="button"
+                                key={i}
+                                className="text-left list-group-item"
+                              >
+                                <strong dangerouslySetInnerHTML={{ __html: expansion.name }} />
+                                <span className="ml-3">Q: {expansion.q}</span>
+                                <span className="ml-3">A: {expansion.a}</span>
+                                <br />
+                                <span className="">Language: {expansion.lang}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
             )}
 
             <div className="mt-2 text-center">
               <button
-                type="submit"
+                type="button"
                 className="btn btn-dark"
                 onClick={this.onCreate}
                 disabled={!name || !rounds || expansions.length === 0}
@@ -201,6 +224,54 @@ class CreateGame extends PureComponent {
             </div>
           </form>
         </div>
+        {showDecks && (
+          <div className="ak-modal-wrapper">
+            <div
+              className="modal fade show"
+              style={{ display: 'block', zIndex: 10005 }}
+              onClick={() => this.setState({ showDecks: false })}
+            >
+              <div className={'modal-dialog modal-dialog-centered modal-lg'} role="document">
+                <div className="modal-content " onClick={e => e.stopPropagation()}>
+                  <div className="modal-header bg-dark text-light">
+                    <h5 className="modal-title">SELECT DECK</h5>
+                    <button
+                      type="button"
+                      className="close"
+                      data-dismiss="modal"
+                      aria-label="Close"
+                      onClick={() => this.setState({ showDecks: false })}
+                    >
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                  <div className="modal-body p-3">
+                    <div className="list-group list-group-flush">
+                      {decks.map((deck, i) => {
+                        return (
+                          <div key={i} className="list-group-item">
+                            <div className="d-flex justify-content-between">
+                              <button className="btn btn-link" onClick={() => this.onSelectDeck(deck)}>
+                                {deck.name} ({deck.expansions.length} expansions)
+                              </button>
+                              <button
+                                className="btn btn-outline-danger btn-sm"
+                                onClick={e => this.onDeleteDeck(e, deck.name)}
+                              >
+                                <Octicon icon={Trashcan} />
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="modal-backdrop fade show" style={{ zIndex: 10001 }} />
+          </div>
+        )}
       </div>
     );
   }
@@ -214,11 +285,55 @@ class CreateGame extends PureComponent {
     if (!this.props.cockpit.loaded) {
       this.props.dispatch(doGetCockpitExpansions());
     }
+    const decks = loadDecks();
+    if (decks) {
+      this.setState({ decks });
+    }
   }
 
   onSearch = e => {
     this.setState({ search: e.target.value });
   };
+
+  onShowDecks = () => {
+    this.setState({ showDecks: true });
+  };
+
+  onDeleteDeck = (e, name) => {
+    e.currentTarget.blur();
+    const decks = removeDeck(name);
+    this.setState({ decks, showDecks: decks.length > 0 });
+  };
+
+  onSelectDeck = deck => {
+    const { cockpit } = this.props;
+    const expansions = [];
+    deck.expansions.forEach(expansion => {
+      if (cockpit.expansions[expansion]) {
+        expansions.push(cockpit.expansions[expansion]);
+      }
+    });
+    this.setState({ showDecks: false, expansions });
+  };
+
+  onSaveDeck = () => {
+    akPrompt({
+      message: 'Set a name for this deck',
+      onOk: deck_name => {
+        deck_name = deck_name.trim();
+        if (!deck_name) {
+          return;
+        }
+        const decks = addDeck(
+          deck_name,
+          this.state.expansions.map(expansion => expansion.code)
+        );
+        this.setState({ decks });
+      },
+      title: 'SAVE DECK'
+    });
+  };
+
   changeRounds = e => {
     let rounds = e.target.value;
     if (rounds === '') {
@@ -248,8 +363,7 @@ class CreateGame extends PureComponent {
     this.setState({ expansions: _next_expansions });
   };
 
-  onCreate = e => {
-    e.preventDefault();
+  onCreate = () => {
     const { name, rounds, expansions } = this.state;
     if (!name) {
       return;
