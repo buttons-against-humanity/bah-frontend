@@ -17,7 +17,7 @@ class ButtonsList extends PureComponent {
             return (
               <div key={i} className="col-lg-3 col-6 mb-3">
                 <button
-                  className="btn btn-dark p-4 w-100"
+                  className="btn btn-dark p-4 w-100 h-100"
                   onClick={() => onAnswer(answer)}
                   dangerouslySetInnerHTML={{ __html: answer.text }}
                 />
