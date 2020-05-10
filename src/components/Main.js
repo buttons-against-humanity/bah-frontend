@@ -306,7 +306,7 @@ class Main extends PureComponent {
 
   askGameUUID = () => {
     akPrompt({
-      message: 'Please insert Game UUID',
+      message: 'Please insert Game Code',
       onOk: game_uuid => {
         game_uuid = game_uuid.trim();
         if (!game_uuid) {
