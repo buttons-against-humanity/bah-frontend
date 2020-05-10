@@ -11,7 +11,7 @@ class PlayersBar extends PureComponent {
   };
 
   render() {
-    const { player, players, round, rounds, isPlayoff } = this.props;
+    const { players, round, rounds, isPlayoff } = this.props;
     if (players.length === 0) {
       return null;
     }
@@ -31,7 +31,6 @@ class PlayersBar extends PureComponent {
               const card_czar = round && round.card_czar.uuid === _player.uuid;
               return (
                 <span key={i} className={'ml-3 p-2 ' + (card_czar ? ' bg-dark text-white' : '')}>
-                  {_player.uuid === player.uuid ? ' * ' : ''}
                   {_player.name} - Points: {_player.points}
                 </span>
               );
