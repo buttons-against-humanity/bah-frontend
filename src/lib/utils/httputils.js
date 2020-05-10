@@ -27,8 +27,8 @@ async function _parseJsonBody(contentType, response) {
 
 async function sendData(path, data, contentType, method) {
   const headers = {
-    Accept: 'application/vdn.cn.fluidware.it-v1+json',
-    'X-CN': settings.appName + '/' + settings.version
+    Accept: 'application/vdn.cn.buttonsagainsthumanity.com-v1+json',
+    'X-BAH': settings.appName + '/' + settings.version
   };
   /*
   const token = getBearerToken();
