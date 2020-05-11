@@ -2,14 +2,8 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import Countdown from 'react-countdown';
 
-const htmlToText = function(str) {
-  if (str.indexOf('<b>') < 0) {
-    return str;
-  }
-  if (str.indexOf('<small>') < 0) {
-    return str;
-  }
-  return str.substring(3, str.indexOf('</b>')) + ' ';
+const crToBr = function(str) {
+  return str.replace(/\\n/g, '<br />');
 };
 
 class RoundHeader extends PureComponent {
@@ -59,11 +53,11 @@ class RoundHeader extends PureComponent {
       return round.question.text;
     }
     const { question } = round;
-    let text = htmlToText(question.text);
+    let text = crToBr(question.text);
 
     if (text.indexOf('_') < 0) {
       for (let i = 0; i < answer.length; i++) {
-        text += `&nbsp<strong>${htmlToText(answer[i].text)}</strong>`;
+        text += `&nbsp<strong>${crToBr(answer[i].text)}</strong>`;
       }
     } else {
       for (let i = 0; i < answer.length; i++) {
