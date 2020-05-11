@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import { doGetCockpitExpansions } from '../../modules/cockpit';
 import { getPlayersNumber } from '../../lib/utils/commonutils';
 import { STORAGE_KEY_PLAYER_NAME } from '../Main';
-import Octicon, { Search, Trashcan } from '@primer/octicons-react';
+import Octicon, { Dash, Plus, Search, Trashcan } from '@primer/octicons-react';
 import { akPrompt } from '../Common/AKAlertConfirm';
 import { addDeck, loadDecks, removeDeck } from '../../lib/utils/decksUtil';
 
@@ -134,11 +134,18 @@ class CreateGame extends PureComponent {
                               key={i}
                               className="text-left list-group-item"
                             >
-                              <strong dangerouslySetInnerHTML={{ __html: expansion.name }} />
-                              <span className="ml-3">Q: {expansion.q}</span>
-                              <span className="ml-3">A: {expansion.a}</span>
-                              <br />
-                              <span className="">Language: {expansion.lang}</span>
+                              <div className="d-flex justify-content-between">
+                                <div>
+                                  <strong dangerouslySetInnerHTML={{ __html: expansion.name }} />
+                                  <span className="ml-3">Q: {expansion.q}</span>
+                                  <span className="ml-3">A: {expansion.a}</span>
+                                  <br />
+                                  <span className="">Language: {expansion.lang}</span>
+                                </div>
+                                <div style={{ paddingTop: 12 }}>
+                                  <Octicon icon={Plus} />
+                                </div>
+                              </div>
                             </button>
                           );
                         })}
@@ -196,11 +203,18 @@ class CreateGame extends PureComponent {
                                 key={i}
                                 className="text-left list-group-item"
                               >
-                                <strong dangerouslySetInnerHTML={{ __html: expansion.name }} />
-                                <span className="ml-3">Q: {expansion.q}</span>
-                                <span className="ml-3">A: {expansion.a}</span>
-                                <br />
-                                <span className="">Language: {expansion.lang}</span>
+                                <div className="d-flex justify-content-between">
+                                  <div>
+                                    <strong dangerouslySetInnerHTML={{ __html: expansion.name }} />
+                                    <span className="ml-3">Q: {expansion.q}</span>
+                                    <span className="ml-3">A: {expansion.a}</span>
+                                    <br />
+                                    <span className="">Language: {expansion.lang}</span>
+                                  </div>
+                                  <div style={{ paddingTop: 12 }}>
+                                    <Octicon icon={Dash} />
+                                  </div>
+                                </div>
                               </button>
                             );
                           })}
@@ -212,7 +226,7 @@ class CreateGame extends PureComponent {
               </div>
             )}
 
-            <div className="mt-2 text-center">
+            <div className="mt-3 text-center">
               <button
                 type="button"
                 className="btn btn-dark"
