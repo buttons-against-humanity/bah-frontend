@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import Config, { setConfig } from '../../modules/config';
 import { Link } from 'react-router-dom';
 
 class Homepage extends PureComponent {
@@ -72,14 +71,6 @@ class Homepage extends PureComponent {
         )}
       </div>
     );
-  }
-
-  componentDidMount() {
-    if (!this.props.config.loaded) {
-      Config.get().then(data => {
-        this.props.dispatch(setConfig(data));
-      });
-    }
   }
 }
 

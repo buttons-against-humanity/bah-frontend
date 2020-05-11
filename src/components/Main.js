@@ -1,4 +1,5 @@
 import React, { PureComponent } from 'react';
+import PropTypes from 'prop-types';
 import { akPrompt } from './Common/AKAlertConfirm';
 import socketIOClient from 'socket.io-client';
 import { akToast } from './Common/AkToast';
@@ -11,8 +12,11 @@ import OwnerInitialPage from './Game/OwnerInitialPage';
 import OwnerNextRound from './Game/OwnerNextRound';
 import CreateGame from './Game/CreateGame';
 import Scoreboard from './Game/Scoreboard';
+import Config, { setConfig } from '../modules/config';
+import { connect } from 'react-redux';
 
 export const STORAGE_KEY_PLAYER_NAME = 'player_name';
+
 const initialState = {
   name: '',
   game_uuid: null,
@@ -33,6 +37,11 @@ const initialState = {
 };
 
 class Main extends PureComponent {
+  static propTypes = {
+    config: PropTypes.object.isRequired,
+    dispatch: PropTypes.func.isRequired
+  };
+
   state = Object.assign({}, initialState);
 
   socket;
@@ -127,6 +136,11 @@ class Main extends PureComponent {
 
   componentDidMount() {
     this.setupSocket();
+    if (!this.props.config.loaded) {
+      Config.get().then(data => {
+        this.props.dispatch(setConfig(data));
+      });
+    }
   }
 
   componentWillUnmount() {
@@ -185,6 +199,9 @@ class Main extends PureComponent {
         this.onGameEnded();
       } else {
         this.setState({ game_ended: true });
+      }
+      if (this.props.config.stickyNode) {
+        Config.get().catch(() => {}); // I don't care..
       }
     });
     this.socket.on('player:update', player => {
@@ -266,15 +283,22 @@ class Main extends PureComponent {
         owner: true
       },
       () => {
-        const sendMsg = () => {
-          this.socket.emit('game:create', { owner: name, rounds, expansions });
-        };
-        if (!this.socket.connected) {
-          this.socket.open();
-          setTimeout(sendMsg, 200);
-        } else {
-          sendMsg();
-        }
+        fetch('/api/game', {
+          method: 'POST'
+        }).then(() => {
+          const sendMsg = () => {
+            this.socket.emit('game:create', { owner: name, rounds, expansions });
+          };
+          if (!this.socket.connected) {
+            this.socket.open();
+            setTimeout(sendMsg, 200);
+          } else {
+            this.socket.close();
+            this.socket.open();
+            setTimeout(sendMsg, 200);
+            sendMsg();
+          }
+        });
       }
     );
   };
@@ -318,24 +342,36 @@ class Main extends PureComponent {
           },
           () => {
             this.askName(() => {
-              const sendMsg = () => {
-                this.socket.emit('game:join', {
-                  game_uuid,
-                  player_name: this.state.name
-                });
-              };
-              if (!this.socket.connected) {
-                this.socket.open();
-                setTimeout(sendMsg, 200);
-              } else {
-                sendMsg();
-              }
+              this.doJoinGame(game_uuid);
             });
           }
         );
       },
       title: 'GAME'
     });
+  };
+
+  doJoinGame = game_uuid => {
+    fetch(`/api/game/${game_uuid}`)
+      .then(() => {
+        const sendMsg = () => {
+          this.socket.emit('game:join', {
+            game_uuid,
+            player_name: this.state.name
+          });
+        };
+        if (!this.socket.connected) {
+          this.socket.open();
+          setTimeout(sendMsg, 200);
+        } else {
+          this.socket.close();
+          this.socket.open();
+          setTimeout(sendMsg, 200);
+        }
+      })
+      .catch(err => {
+        console.error('Failed to call /api/game', err.message);
+      });
   };
 
   onGameStart = () => {
@@ -361,4 +397,12 @@ class Main extends PureComponent {
   };
 }
 
-export default Main;
+function mapStateToProps(state) {
+  const { config } = state;
+
+  return {
+    config
+  };
+}
+
+export default connect(mapStateToProps)(Main);
